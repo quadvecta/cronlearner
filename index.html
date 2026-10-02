@@ -1,0 +1,1168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CronLearner - Learn to Code</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=PT+Sans:ital,wght@0,400;0,700;1,400;1,700&display=swap');
+
+        :root {
+            /* Light Theme (Default) */
+            --bg-main: #f8fafc;
+            --bg-panel: #ffffff;
+            --text-primary: #0f172a;
+            --text-secondary: #64748b;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --danger: #ef4444;
+            --font-family: 'PT Sans', sans-serif;
+            --radius: 0.75rem;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+        }
+
+        [data-theme="dark"] {
+            --bg-main: #0f172a;
+            --bg-panel: #1e293b;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --accent: #60a5fa;
+            --accent-hover: #93c5fd;
+            --border: #334155;
+            --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.5);
+        }
+
+        [data-theme="cyber"] {
+            --bg-main: #050505;
+            --bg-panel: #111111;
+            --text-primary: #00ff00;
+            --text-secondary: #008800;
+            --accent: #ff00ff;
+            --accent-hover: #ff66ff;
+            --border: #330033;
+            --radius: 0;
+            --shadow: 0 0 10px rgba(0, 255, 0, 0.2);
+        }
+
+        [data-theme="kawaii"] {
+            --bg-main: #fff0f5;
+            --bg-panel: #ffffff;
+            --text-primary: #835c3b;
+            --text-secondary: #a08475;
+            --accent: #ffb7b2;
+            --accent-hover: #ff9e99;
+            --border: #ffd1dc;
+            --radius: 2rem;
+            --shadow: 0 10px 15px -3px rgba(255, 183, 178, 0.3);
+        }
+
+        [data-theme="glass"] {
+            --bg-main: #000000;
+            --bg-panel: rgba(255, 255, 255, 0.03);
+            --text-primary: #ffffff;
+            --text-secondary: #a1a1aa;
+            --accent: #818cf8;
+            --accent-hover: #a5b4fc;
+            --border: rgba(255, 255, 255, 0.08);
+            --radius: 1.5rem;
+            --shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.5);
+        }
+
+  
+        body { background-color: var(--bg-main); color: var(--text-primary); font-family: var(--font-family); transition: background-color 0.3s, color 0.3s; }
+        
+        .bg-panel { 
+            background-color: var(--bg-panel); 
+            box-shadow: var(--shadow); 
+            border-radius: var(--radius); 
+            border: 1px solid var(--border); 
+        }
+
+
+        [data-theme="glass"] .bg-panel {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border-top: 1px solid rgba(255, 255, 255, 0.15);
+            border-left: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: inset 0 0 20px rgba(255, 255, 255, 0.02), 0 8px 32px rgba(0,0,0,0.8);
+        }
+
+        [data-theme="glass"] #theme-selector { background-color: #000; color: #fff; }
+
+        .text-primary { color: var(--text-primary); }
+        .text-secondary { color: var(--text-secondary); }
+        .bg-accent { background-color: var(--accent); color: #fff; }
+        .bg-accent:hover { background-color: var(--accent-hover); }
+        .text-accent { color: var(--accent); }
+        .border-theme { border-color: var(--border); }
+        
+        .btn {
+            background-color: var(--accent);
+            color: white;
+            padding: 0.5rem 1rem;
+            border-radius: var(--radius);
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            text-align: center;
+        }
+        .btn:hover { background-color: var(--accent-hover); transform: translateY(-2px); box-shadow: 0 4px 10px rgba(0,0,0,0.15); }
+        .btn:active { transform: translateY(1px) scale(0.95); box-shadow: none; }
+        .btn-outline { background-color: transparent; border: 2px solid var(--accent); color: var(--accent); }
+        .btn-outline:hover { background-color: var(--accent); color: white; }
+        .btn-disabled { opacity: 0.5; cursor: not-allowed; pointer-events: none; }
+        
+        #app-container { display: flex; height: 100vh; overflow: hidden; position: relative; }
+        #sidebar { width: 250px; flex-shrink: 0; display: flex; flex-direction: column; transition: all 0.3s ease; overflow: hidden; z-index: 50; }
+        #sidebar.collapsed { width: 0 !important; padding-left: 0 !important; padding-right: 0 !important; border: none; }
+        #sidebar.collapsed * { opacity: 0; pointer-events: none; transition: opacity 0.1s; }
+        #main-content { flex-grow: 1; overflow-y: auto; padding: 2rem; position: relative; }
+        .view-section { display: none; animation: fadeIn 0.3s ease; }
+        .view-section.active { display: block; }
+        
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+
+        .roadmap-node { position: relative; padding-left: 2rem; margin-bottom: 2rem; border-left: 2px solid var(--border); }
+        .roadmap-node::before {
+            content: ''; position: absolute; left: -9px; top: 0; width: 16px; height: 16px;
+            border-radius: 50%; background-color: var(--bg-panel); border: 2px solid var(--border); z-index: 10;
+        }
+        .roadmap-node.completed::before { background-color: var(--success); border-color: var(--success); }
+        .roadmap-node.unlocked::before { background-color: var(--accent); border-color: var(--accent); box-shadow: 0 0 10px var(--accent); }
+        
+        .module-card {
+            position: relative;
+            overflow: hidden;
+        }
+        .module-card > * { position: relative; z-index: 2; }
+        .module-banner {
+            position: absolute;
+            top: 0; right: 0; bottom: 0; width: 65%;
+            background-size: cover;
+            background-position: center;
+            opacity: 0.5;
+            z-index: 1;
+            pointer-events: none;
+       
+            -webkit-mask-image: linear-gradient(to right, transparent 0%, black 100%);
+            mask-image: linear-gradient(to right, transparent 0%, black 100%);
+            border-radius: 0 var(--radius) var(--radius) 0;
+            transition: opacity 0.3s ease;
+        }
+        .roadmap-node:hover .module-banner { opacity: 0.7; }
+        [data-theme="glass"] .module-banner { mix-blend-mode: overlay; opacity: 0.3; }
+
+     
+        .quiz-progress-track { width: 100%; height: 6px; background: var(--border); border-radius: 3px; overflow: hidden; margin-bottom: 1.5rem; }
+        .quiz-progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.4s ease-out; }
+
+        #quiz-inner-content { transition: opacity 0.3s ease; }
+
+        .water-tank {
+            position: relative; width: 120px; height: 120px; border-radius: 50%;
+            border: 4px solid var(--border); overflow: hidden; background: var(--bg-main);
+            margin: 0 auto; box-shadow: inset 0 0 20px rgba(0,0,0,0.1);
+        }
+        .water-fill, .water-fill-2 {
+            position: absolute; left: -50%; width: 200%; height: 200%;
+            background: var(--accent); border-radius: 40%;
+            animation: spin 6s linear infinite; transition: top 1s ease-in-out;
+        }
+        .water-fill { opacity: 0.8; top: 100%; z-index: 1; }
+        .water-fill-2 { opacity: 0.4; top: 100%; border-radius: 45%; animation: spin 8s linear infinite reverse; z-index: 2; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .tank-value {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            font-size: 1.75rem; font-weight: bold; z-index: 10; color: var(--text-primary);
+            text-shadow: 0px 0px 5px var(--bg-panel);
+        }
+
+        @media (max-width: 768px) {
+            #sidebar { position: absolute; height: 100%; z-index: 50; background-color: var(--bg-panel); }
+            #sidebar:not(.collapsed) { width: 250px; box-shadow: 10px 0 15px -3px rgba(0,0,0,0.1); }
+            #main-content { padding: 1rem; }
+        }
+
+        pre { background: #1e1e1e; color: #d4d4d4; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; font-family: monospace; }
+        .kw { color: #569cd6; } .str { color: #ce9178; } .typ { color: #4ec9b0; } .cmt { color: #6a9955; font-style: italic; }
+    </style>
+</head>
+<body data-theme="light">
+
+    <div id="app-container">
+      
+        <nav id="sidebar" class="bg-panel border-r border-theme p-4">
+            <div class="flex items-center gap-3 mb-8 w-full">
+                <div class="w-10 h-10 rounded-lg bg-accent flex items-center justify-center text-white text-xl font-bold">
+                    <i class="fa-solid fa-code"></i>
+                </div>
+                <h1 class="text-xl font-bold text-primary nav-label tracking-wider">CronLearner</h1>
+            </div>
+
+            <div class="flex flex-col gap-2 w-full flex-grow">
+                <button class="nav-btn p-3 rounded-lg flex items-center gap-3 text-left hover:bg-black/5 hover:dark:bg-white/5 transition-colors" data-target="dashboard-view">
+                    <i class="fa-solid fa-chart-line w-6 text-center text-secondary"></i>
+                    <span class="nav-label font-semibold">Dashboard</span>
+                </button>
+                <button class="nav-btn p-3 rounded-lg flex items-center gap-3 text-left hover:bg-black/5 hover:dark:bg-white/5 transition-colors" data-target="roadmap-view">
+                    <i class="fa-solid fa-map-location-dot w-6 text-center text-secondary"></i>
+                    <span class="nav-label font-semibold">Roadmap</span>
+                </button>
+                <button class="nav-btn p-3 rounded-lg flex items-center gap-3 text-left hover:bg-black/5 hover:dark:bg-white/5 transition-colors" data-target="profile-view">
+                    <i class="fa-solid fa-user-astronaut w-6 text-center text-secondary"></i>
+                    <span class="nav-label font-semibold">Profile & Sync</span>
+                </button>
+            </div>
+
+            <div class="mt-auto w-full pt-4 border-t border-theme">
+                <div class="flex items-center gap-3 mb-4">
+                    <img id="sidebar-pfp" src="https://ui-avatars.com/api/?name=Guest&background=random" class="w-10 h-10 rounded-full border-2 border-theme object-cover">
+                    <div class="nav-label flex flex-col overflow-hidden">
+                        <span id="sidebar-username" class="font-bold text-sm truncate">Guest Mode</span>
+                        <span id="sidebar-level" class="text-xs text-secondary truncate">Lvl 1 Novice</span>
+                    </div>
+                </div>
+                <div class="relative">
+                    <select id="theme-selector" class="w-full p-2 bg-transparent border border-theme rounded-lg text-sm font-semibold cursor-pointer outline-none appearance-none">
+                        <option value="light">Light</option>
+                        <option value="dark">Dark</option>
+                        <option value="glass">Glass</option>
+                        <option value="cyber">Cyber</option>
+                        <option value="kawaii">Kawaii</option>
+                    </select>
+                </div>
+            </div>
+        </nav>
+
+   
+        <main id="main-content">
+            
+            <button id="hamburger-btn" class="mb-6 text-2xl text-secondary hover:text-primary transition-colors flex items-center gap-3 w-max" onclick="toggleSidebar()">
+                <i class="fa-solid fa-bars"></i>
+            </button>
+
+    
+            <section id="dashboard-view" class="view-section active max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-2">Welcome back, <span id="dash-name" class="text-accent">Guest</span>!</h2>
+                <p class="text-secondary mb-8">Ready to continue your coding journey?</p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+                    <div class="bg-panel p-6 flex flex-col items-center justify-center">
+                        <div class="text-secondary mb-4 text-sm font-bold uppercase tracking-wider text-center">Overall Progress</div>
+                        <div class="water-tank">
+                            <div id="dash-progress-fill" class="water-fill" style="top: 100%;"></div>
+                            <div id="dash-progress-fill-2" class="water-fill-2" style="top: 100%;"></div>
+                            <div class="tank-value" id="dash-progress">0%</div>
+                        </div>
+                    </div>
+                    <div class="bg-panel p-6">
+                        <div class="text-secondary mb-2 text-sm font-bold uppercase tracking-wider">Modules Completed</div>
+                        <div class="text-4xl font-bold text-primary mb-2" id="dash-modules">0</div>
+                    </div>
+                    <div class="bg-panel p-6">
+                        <div class="text-secondary mb-2 text-sm font-bold uppercase tracking-wider">Badges Earned</div>
+                        <div class="text-4xl font-bold text-primary mb-2" id="dash-badges-count">0</div>
+                    </div>
+                </div>
+
+                <div class="bg-panel p-6 mb-8">
+                    <h3 class="text-xl font-bold mb-4 border-b border-theme pb-2">Up Next</h3>
+                    <div id="dash-up-next" class="flex flex-col sm:flex-row items-center justify-between gap-4">
+            
+                    </div>
+                </div>
+
+                <h3 class="text-xl font-bold mb-4 border-b border-theme pb-2">Recent Badges</h3>
+                <div id="dash-badges" class="flex flex-wrap gap-4">
+           
+                </div>
+            </section>
+
+  
+            <section id="roadmap-view" class="view-section max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-2">Learning Curriculum</h2>
+                <p class="text-secondary mb-8">Follow the path to master programming. Complete quizzes to unlock next modules.</p>
+                <div id="roadmap-container" class="pl-4">
+           
+                </div>
+            </section>
+
+       
+            <section id="learning-view" class="view-section max-w-3xl mx-auto">
+                <button class="mb-6 text-secondary hover:text-primary flex items-center gap-2" onclick="switchView('roadmap-view')">
+                    <i class="fa-solid fa-arrow-left"></i> Back to Roadmap
+                </button>
+                <div class="bg-panel p-8">
+                    <div id="lesson-header" class="mb-6 border-b border-theme pb-4">
+                        <span id="lesson-tag" class="text-xs font-bold uppercase tracking-wider text-accent mb-2 block">Track > Module</span>
+                        <h2 id="lesson-title" class="text-3xl font-bold">Lesson Title</h2>
+                    </div>
+                    <div id="lesson-content" class="text-lg leading-relaxed space-y-4 mb-8">
+            
+                    </div>
+                    <div class="mt-8 flex justify-end pt-4 border-t border-theme">
+                        <button id="btn-start-quiz" class="btn text-lg px-8 py-3 flex items-center gap-2">
+                            Take Module Quiz <i class="fa-solid fa-clipboard-check"></i>
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+  
+            <section id="quiz-view" class="view-section max-w-2xl mx-auto">
+                <div class="bg-panel p-8">
+                    <div id="quiz-container">
+                        <div class="quiz-progress-track">
+                            <div id="quiz-progress-bar" class="quiz-progress-fill"></div>
+                        </div>
+                        <div class="flex justify-between items-center mb-6 border-b border-theme pb-4">
+                            <h2 class="text-2xl font-bold">Module Quiz</h2>
+                            <span class="text-secondary font-bold" id="quiz-progress">Q 1/3</span>
+                        </div>
+                        
+                        <div id="quiz-inner-content" class="opacity-100">
+                            <h3 id="question-text" class="text-xl font-semibold mb-6">Question text goes here?</h3>
+                            <div id="options-container" class="flex flex-col gap-3 mb-6">
+                        
+                            </div>
+                            <div class="flex justify-end mt-4 min-h-[48px]">
+                                <button id="btn-submit-answer" class="btn hidden">Submit Answer</button>
+                            </div>
+                        </div>
+                    </div>
+
+              
+                    <div id="quiz-results" class="hidden text-center flex flex-col items-center justify-center py-10">
+                        <div id="reward-showcase" class="hidden mb-6 p-2">
+                            <div id="reward-items" class="flex justify-center gap-4 text-4xl"></div>
+                        </div>
+                        <h3 id="result-score" class="text-6xl font-bold mb-2 text-primary">100%</h3>
+                        <p id="result-status" class="text-xl font-bold tracking-widest uppercase mb-10 text-success">PASSED</p>
+                        
+                        <div class="flex gap-4 justify-center">
+                            <button id="btn-retry-quiz" class="btn btn-outline hidden">Retry Quiz</button>
+                            <button class="btn" onclick="switchView('roadmap-view')">Return to Roadmap</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+        
+            <section id="profile-view" class="view-section max-w-4xl mx-auto">
+                <h2 class="text-3xl font-bold mb-6">Profile & Settings</h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-panel p-6 flex flex-col items-center text-center">
+                        <div class="relative group cursor-pointer mb-4">
+                            <img id="profile-large-pfp" src="https://ui-avatars.com/api/?name=Guest&background=random" class="w-32 h-32 rounded-full border-4 border-theme object-cover transition-transform group-hover:scale-105">
+                            <div class="absolute inset-0 bg-black/50 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity" onclick="openCosmeticsModal()">
+                                <i class="fa-solid fa-pen text-white text-xl"></i>
+                            </div>
+                        </div>
+                        <h3 class="text-2xl font-bold mb-1 flex items-center gap-2 justify-center">
+                            <span id="profile-name-display">Guest User</span>
+                            <button onclick="editUsername()" class="p-2 rounded-full hover:bg-black/5 dark:hover:bg-white/5 transition-colors cursor-pointer text-secondary hover:text-accent">
+                                <i class="fa-solid fa-pen text-sm"></i>
+                            </button>
+                        </h3>
+                        <p id="profile-level-display" class="text-accent font-bold mb-4">Level 1</p>
+                        
+                        <div class="w-full flex justify-around mt-4 pt-4 border-t border-theme">
+                            <div><span class="block font-bold text-xl" id="stat-modules">0</span><span class="text-xs text-secondary uppercase">Modules</span></div>
+                            <div><span class="block font-bold text-xl" id="stat-badges">0</span><span class="text-xs text-secondary uppercase">Badges</span></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-panel p-6 flex flex-col">
+                        <h3 class="text-xl font-bold mb-4 border-b border-theme pb-2 flex items-center gap-2">
+                            <i class="fa-solid fa-cloud-arrow-up text-accent"></i> Data Sync (Guest Mode)
+                        </h3>
+                        <p class="text-sm text-secondary mb-4 flex-grow">
+                            You are playing in Guest Mode. Progress is saved locally. Download a backup to ensure you don't lose data!
+                        </p>
+                        <div class="flex flex-col gap-3">
+                            <button onclick="downloadSaveData()" class="btn flex items-center justify-center gap-2">
+                                <i class="fa-solid fa-download"></i> Backup Save (.json)
+                            </button>
+                            <label class="btn btn-outline flex items-center justify-center gap-2 cursor-pointer">
+                                <i class="fa-solid fa-upload"></i> Restore Backup
+                                <input type="file" id="upload-save" accept=".json" class="hidden" onchange="uploadSaveData(event)">
+                            </label>
+                            <div class="mt-4 p-3 bg-red-500/10 border border-red-500 rounded-lg text-sm text-center">
+                                <p class="font-bold text-red-500 mb-1">Danger Zone</p>
+                                <button onclick="resetProgress()" class="text-red-500 underline hover:text-red-700">Wipe all progress</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-panel p-6 mt-6">
+                    <h3 class="text-xl font-bold mb-4 border-b border-theme pb-2">Badge Collection</h3>
+                    <div id="all-badges-grid" class="flex flex-wrap gap-4">
+                 
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+
+    <div id="cosmetics-modal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-panel w-full max-w-md p-6 relative">
+            <button onclick="closeCosmeticsModal()" class="absolute top-4 right-4 text-secondary hover:text-primary"><i class="fa-solid fa-xmark text-xl"></i></button>
+            <h3 class="text-xl font-bold mb-4">Choose Avatar</h3>
+            <p class="text-sm text-secondary mb-4">Unlock more avatars by completing modules!</p>
+            <div id="avatar-grid" class="grid grid-cols-4 gap-4 max-h-64 overflow-y-auto p-2">
+      
+            </div>
+        </div>
+    </div>
+
+    <script>
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = new AudioContext();
+
+        function playTone(freq, type, duration, startTimeOffset) {
+            if (audioCtx.state === 'suspended') audioCtx.resume();
+            const osc = audioCtx.createOscillator();
+            const gainNode = audioCtx.createGain();
+            osc.type = type;
+            osc.frequency.setValueAtTime(freq, audioCtx.currentTime + startTimeOffset);
+            osc.connect(gainNode);
+            gainNode.connect(audioCtx.destination);
+            osc.start(audioCtx.currentTime + startTimeOffset);
+            gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime + startTimeOffset);
+            gainNode.gain.exponentialRampToValueAtTime(0.00001, audioCtx.currentTime + startTimeOffset + duration);
+            osc.stop(audioCtx.currentTime + startTimeOffset + duration);
+        }
+
+        function playCorrectSound() { playTone(600, 'sine', 0.15, 0); playTone(800, 'sine', 0.3, 0.15); }
+        function playWrongSound() { playTone(300, 'sawtooth', 0.2, 0); playTone(250, 'sawtooth', 0.3, 0.15); }
+        function playPassSound() { [440, 554, 659, 880].forEach((f, i) => playTone(f, 'triangle', 0.2, i * 0.15)); }
+        function playFailSound() { [400, 350, 300, 250].forEach((f, i) => playTone(f, 'sawtooth', 0.3, i * 0.2)); }
+
+  
+        const contentHTML = {
+            'b_1': `
+                <p>Welcome to the world of computing! Before we write code, we must understand the incredible machines we are commanding and how they came to be.</p>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">What is a Computer?</h4>
+                <p>At its core, a computer is a machine that takes <strong>Input</strong> (data), <strong>Processes</strong> it (using logic and math), and provides <strong>Output</strong> (results). It achieves this incredibly fast using electronic circuits.</p>
+                <ul class="list-disc pl-5 mt-2 space-y-1">
+                    <li><strong>Hardware:</strong> The physical, tangible parts (CPU, RAM, Motherboard, Keyboard).</li>
+                    <li><strong>Software:</strong> The intangible instructions (Operating Systems, Apps, Scripts) that tell the hardware exactly what to do.</li>
+                </ul>
+                <h4 class="font-bold mt-6 mb-2 text-xl text-accent">The 5 Generations of Computers</h4>
+                <p class="mb-2">Computers evolved from massive, room-sized calculators to the powerful devices in our pockets. This journey is divided into five generations:</p>
+                <ol class="list-decimal pl-5 space-y-3">
+                    <li><strong>1st Gen (1940s-1950s) - Vacuum Tubes:</strong> Early computers like ENIAC and UNIVAC used fragile glass vacuum tubes for circuitry and magnetic drums for memory. They were massive, generated enormous heat, and consumed vast amounts of electricity. They relied on machine language (0s and 1s).</li>
+                    <li><strong>2nd Gen (1950s-1960s) - Transistors:</strong> Transistors replaced vacuum tubes, making computers smaller, faster, cheaper, and more reliable. Assembly languages were introduced, allowing programmers to use words instead of binary codes. Example: IBM 1401.</li>
+                    <li><strong>3rd Gen (1960s-1970s) - Integrated Circuits (ICs):</strong> Transistors were miniaturized and placed on silicon chips (semiconductors). This drastically increased speed and efficiency. Keyboards and monitors emerged, replacing punched cards, and Operating Systems were born to run multiple applications at once.</li>
+                    <li><strong>4th Gen (1970s-Present) - Microprocessors:</strong> Thousands of ICs were built onto a single silicon chip, creating the Central Processing Unit (CPU). This brought computers to the masses (Personal Computers or PCs). GUIs (Graphical User Interfaces) and the Internet were developed in this era.</li>
+                    <li><strong>5th Gen (Present & Future) - Artificial Intelligence:</strong> Based on AI, quantum computation, and nanotechnology. Devices can now respond to natural language, learn from massive datasets (Machine Learning), and process tasks in parallel.</li>
+                </ol>
+            `,
+            'b_2': `
+                <p>How does a computer organize millions of pieces of information? It uses a system very similar to a physical office filing cabinet.</p>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Operating Systems (OS)</h4>
+                <p>An Operating System is the most critical software running on a computer. It acts as a bridge between the user and the computer hardware. Without an OS, your computer is just a dead box of metal. Key functions include:</p>
+                <ul class="list-disc pl-5 mt-2 space-y-1 mb-4">
+                    <li><strong>Memory Management:</strong> Deciding which app gets RAM and when.</li>
+                    <li><strong>Process Management:</strong> Allocating CPU time to different tasks.</li>
+                    <li><strong>User Interface (UI):</strong> Providing a GUI (Windows/macOS) or CLI (Linux Terminal) for you to interact with.</li>
+                </ul>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Files & Extensions</h4>
+                <p>A file is a named collection of data stored on a storage device. To help the OS know what a file contains, we use <strong>File Extensions</strong> (the letters after the dot).</p>
+                <ul class="list-disc pl-5 mt-2 space-y-1 mb-4">
+                    <li><code>.txt</code> - Plain text document</li>
+                    <li><code>.exe</code> - Executable program (Windows)</li>
+                    <li><code>.c</code> - C programming source code</li>
+                    <li><code>.jpg</code> / <code>.png</code> - Image formats</li>
+                </ul>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Directories (Folders) & Paths</h4>
+                <p>To prevent chaos, files are grouped into <strong>Directories</strong> (folders). Directories can contain files and other directories, creating a hierarchical "tree" structure.</p>
+                <pre class="mt-2 mb-2"><code>Root/
+ ├─ Documents/
+ │  └─ resume.pdf
+ └─ Projects/
+    ├─ hello.c
+    └─ main.exe</code></pre>
+                <p>To locate a file, we use a <strong>Path</strong>. An <em>Absolute Path</em> traces from the Root (e.g., <code>C:\\Users\\Guest\\Projects\\hello.c</code>), while a <em>Relative Path</em> traces from your current location (e.g., <code>./hello.c</code>).</p>
+            `,
+            'c_1': `
+                <p>C is a foundational programming language. Developed in 1972 by Dennis Ritchie at Bell Labs, it was originally created to write the UNIX operating system. It is incredibly fast, gives you direct access to memory, and is the ancestor of modern languages like C++, Java, and Python.</p>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">The Compilation Process</h4>
+                <p>Computers only understand machine code (binary). C is a high-level language, so it must be translated. This happens in four steps:</p>
+                <ol class="list-decimal pl-5 mt-2 mb-4 space-y-1">
+                    <li><strong>Preprocessing:</strong> Handles commands starting with <code>#</code> (like including libraries).</li>
+                    <li><strong>Compiling:</strong> Translates C code into assembly language.</li>
+                    <li><strong>Assembly:</strong> Converts assembly code into machine-level object code.</li>
+                    <li><strong>Linking:</strong> Combines your code with pre-written library code to create the final executable file.</li>
+                </ol>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Anatomy of a C Program</h4>
+                <p>Let's look at the classic "Hello, World!" program:</p>
+                <pre class="mt-2 mb-4"><code><span class="cmt">/* This is a comment. It is ignored by the compiler. */</span>
+<span class="cmt">#include &lt;stdio.h&gt;</span>
+
+<span class="typ">int</span> <span class="kw">main</span>() {
+    <span class="kw">printf</span>(<span class="str">"Hello, World!\\n"</span>);
+    <span class="kw">return</span> 0;
+}</code></pre>
+                <ul class="list-disc pl-5 space-y-2">
+                    <li><code>#include &lt;stdio.h&gt;</code>: The preprocessor directive. It includes the <strong>St</strong>andar<strong>d</strong> <strong>I</strong>nput/<strong>O</strong>utput library, which contains the code for the <code>printf</code> function.</li>
+                    <li><code>int main()</code>: The entry point. Every C program MUST have a <code>main</code> function. Execution starts here.</li>
+                    <li><code>printf(...)</code>: A built-in function used to print text to the screen. The <code>\\n</code> creates a new line.</li>
+                    <li><code>return 0;</code>: Ends the main function and tells the Operating System the program ran successfully (0 means zero errors).</li>
+                    <li><strong>Semicolons (;)</strong>: Crucial! Every statement in C must end with a semicolon, just like a period at the end of an English sentence.</li>
+                </ul>
+            `,
+            'c_2': `
+                <p>In programming, a <strong>Variable</strong> is a named storage location in the computer's memory (RAM) used to hold data. In C, you must explicitly declare the <strong>Type</strong> of data a variable will hold before you use it.</p>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Variable Naming Rules</h4>
+                <ul class="list-disc pl-5 mt-2 mb-4 space-y-1">
+                    <li>Must start with a letter (A-Z, a-z) or an underscore (_).</li>
+                    <li>Cannot contain spaces or special characters (like @, #, %).</li>
+                    <li>Are case-sensitive (<code>Age</code> and <code>age</code> are different variables).</li>
+                    <li>Cannot be a C keyword (like <code>int</code>, <code>return</code>, <code>if</code>).</li>
+                </ul>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Core Data Types & Format Specifiers</h4>
+                <p>When you want to print a variable using <code>printf</code>, you must use a <strong>Format Specifier</strong> as a placeholder in the text string.</p>
+                <div class="overflow-x-auto mt-4 mb-4">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b-2 border-theme"><th class="p-2">Type</th><th class="p-2">Description</th><th class="p-2">Size</th><th class="p-2">Specifier</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr class="border-b border-theme/50"><td class="p-2"><code>int</code></td><td class="p-2">Whole numbers</td><td class="p-2">4 bytes</td><td class="p-2"><code>%d</code></td></tr>
+                            <tr class="border-b border-theme/50"><td class="p-2"><code>float</code></td><td class="p-2">Decimal numbers</td><td class="p-2">4 bytes</td><td class="p-2"><code>%f</code></td></tr>
+                            <tr class="border-b border-theme/50"><td class="p-2"><code>double</code></td><td class="p-2">High-precision decimals</td><td class="p-2">8 bytes</td><td class="p-2"><code>%lf</code></td></tr>
+                            <tr><td class="p-2"><code>char</code></td><td class="p-2">Single character</td><td class="p-2">1 byte</td><td class="p-2"><code>%c</code></td></tr>
+                        </tbody>
+                    </table>
+                </div>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Example Usage</h4>
+                <pre><code><span class="typ">int</span> age = 25;
+<span class="typ">float</span> price = 19.99;
+<span class="typ">char</span> grade = <span class="str">'A'</span>; <span class="cmt">// Use single quotes for chars!</span>
+
+<span class="cmt">// Injecting variables into a string</span>
+<span class="kw">printf</span>(<span class="str">"I am %d years old. Grade: %c\\n"</span>, age, grade);</code></pre>
+            `,
+            'c_structs': `
+                <p>Standard data types (int, float, char) are great, but what if you want to represent a complex object? Arrays allow you to store multiple items, but they must all be of the <em>same type</em>. This is where <strong>Structures (Structs)</strong> come in.</p>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">What is a Struct?</h4>
+                <p>A struct is a user-defined composite data type that allows you to group variables of <strong>different data types</strong> together under a single name in a block of memory. They are perfect for modeling real-world entities.</p>
+                <h4 class="font-bold mt-4 mb-2 text-xl text-accent">Defining and Using a Struct</h4>
+                <p>You define a struct layout, and then you create variables (instances) of that struct. To access the internal variables (members), you use the <strong>Dot Operator (.)</strong>.</p>
+                <pre class="mt-4 mb-4"><code><span class="cmt">// 1. Define the blueprint</span>
+<span class="kw">struct</span> Player {
+    <span class="typ">char</span> name[50];  <span class="cmt">// An array of chars (String)</span>
+    <span class="typ">int</span> health;
+    <span class="typ">float</span> speed;
+}; <span class="cmt">// Don't forget the semicolon here!</span>
+
+<span class="typ">int</span> <span class="kw">main</span>() {
+    <span class="cmt">// 2. Create a variable of type 'struct Player'</span>
+    <span class="kw">struct</span> Player p1;
+    
+    <span class="cmt">// 3. Access members using the dot operator</span>
+    p1.health = 100;
+    p1.speed = 5.5;
+    
+    <span class="kw">printf</span>(<span class="str">"Player HP: %d\\n"</span>, p1.health);
+    <span class="kw">return</span> 0;
+}</code></pre>
+            `
+        };
+
+        const syllabus = [
+            {
+                id: 'track_basics',
+                title: 'Track 1: Computer Basics',
+                icon: 'fa-desktop',
+                modules: [
+                    {
+                        id: 'b_1', title: 'What is a Computer?', description: 'Evolution and basic components.',
+                        img: 'https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=600&q=80',
+                        content: contentHTML['b_1'], requiredScore: 80, requires: null,
+                        quiz: [
+                            { q: "Which generation of computers introduced the Microprocessor?", options: ["2nd Generation", "3rd Generation", "4th Generation", "5th Generation"], answer: 2 },
+                            { q: "What were the primary electronic components used in 1st Gen computers?", options: ["Transistors", "Integrated Circuits", "Vacuum Tubes", "Silicon Chips"], answer: 2 },
+                            { q: "Which of the following is considered Software?", options: ["RAM", "Motherboard", "Operating System", "Keyboard"], answer: 2 },
+                            { q: "The 2nd Generation of computers saw the shift from machine language to what?", options: ["High-level language", "Assembly language", "Natural language", "Binary language"], answer: 1 },
+                            { q: "What is a key focus of 5th Generation computing?", options: ["Vacuum tubes", "Artificial Intelligence", "Punched cards", "Magnetic drums"], answer: 1 }
+                        ]
+                    },
+                    {
+                        id: 'b_2', title: 'Files & OS', description: 'How data is organized.',
+                        img: 'https://images.unsplash.com/photo-1568227493940-a15993e3b339?auto=format&fit=crop&w=600&q=80',
+                        content: contentHTML['b_2'], requiredScore: 80, requires: 'b_1',
+                        quiz: [
+                            { q: "What is the primary role of an Operating System?", options: ["To play games", "Bridge between user and hardware", "To compile C code", "To design websites"], answer: 1 },
+                            { q: "What part of a file name helps the OS understand what data it contains?", options: ["The root directory", "The absolute path", "The file extension", "The file size"], answer: 2 },
+                            { q: "If you trace a file path starting directly from the Root, what is it called?", options: ["Relative Path", "Absolute Path", "Local Path", "System Path"], answer: 1 },
+                            { q: "Which of the following handles allocating RAM to different applications?", options: ["File System", "Process Management", "Memory Management", "User Interface"], answer: 2 },
+                            { q: "What is a Directory?", options: ["A physical hard drive component", "A folder used to group files and other folders", "A text document", "An executable program"], answer: 1 }
+                        ]
+                    }
+                ]
+            },
+            {
+                id: 'track_c',
+                title: 'Track 2: C Programming',
+                icon: 'fa-c',
+                modules: [
+                    {
+                        id: 'c_1', title: 'Intro to C & Syntax', description: 'Hello World and basic structure.',
+                        img: 'https://images.unsplash.com/photo-1542831371-29b0f74f9713?auto=format&fit=crop&w=600&q=80',
+                        content: contentHTML['c_1'], requiredScore: 80, requires: 'b_2',
+                        quiz: [
+                            { q: "Who developed the C programming language?", options: ["Bill Gates", "Steve Jobs", "Dennis Ritchie", "Linus Torvalds"], answer: 2 },
+                            { q: "Which step of the compilation process converts Assembly code into machine-level object code?", options: ["Preprocessing", "Compiling", "Assembly", "Linking"], answer: 2 },
+                            { q: "What is the purpose of '#include <stdio.h>'?", options: ["It ends the program", "It includes the standard input/output library", "It declares a variable", "It returns a zero error code"], answer: 1 },
+                            { q: "Every C program must have which specific function to act as the entry point?", options: ["start()", "init()", "main()", "execute()"], answer: 2 },
+                            { q: "What punctuation mark must end almost every statement in C?", options: ["Period (.)", "Colon (:)", "Comma (,)", "Semicolon (;)"], answer: 3 }
+                        ]
+                    },
+                    {
+                        id: 'c_2', title: 'Variables & Data Types', description: 'Storing information.',
+                        img: 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?auto=format&fit=crop&w=600&q=80',
+                        content: contentHTML['c_2'], requiredScore: 80, requires: 'c_1',
+                        quiz: [
+                            { q: "Which of the following is NOT a valid C variable name?", options: ["playerScore", "my_age", "1stPlace", "_hiddenData"], answer: 2 },
+                            { q: "How many bytes of memory does a standard 'int' usually occupy?", options: ["1 byte", "2 bytes", "4 bytes", "8 bytes"], answer: 2 },
+                            { q: "What format specifier is used to print a 'float' variable?", options: ["%d", "%f", "%c", "%lf"], answer: 1 },
+                            { q: "Which data type is best suited for storing a single letter like 'Z'?", options: ["int", "double", "char", "float"], answer: 2 },
+                            { q: "Why must you declare a variable's type in C?", options: ["To tell the OS how much memory to allocate and how to read it", "Because it looks nice", "To skip compilation", "To turn it into hardware"], answer: 0 }
+                        ]
+                    },
+                    {
+                        id: 'c_structs', title: 'Structs (Optional)', description: 'Grouping data together.',
+                        img: 'https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=600&q=80',
+                        content: contentHTML['c_structs'], requiredScore: 80, requires: 'c_2', isOptional: true,
+                        quiz: [
+                            { q: "What is the primary advantage of a Struct over an Array?", options: ["Structs take up no memory", "Structs can group different data types together", "Structs are built into hardware", "Structs don't need semicolons"], answer: 1 },
+                            { q: "Which operator is used to access the individual members of a struct variable?", options: ["Arrow (->)", "Asterisk (*)", "Dot (.)", "Ampersand (&)"], answer: 2 },
+                            { q: "What keyword is used to define a structure in C?", options: ["class", "struct", "object", "group"], answer: 1 },
+                            { q: "What common syntax mistake often occurs when defining a struct blueprint?", options: ["Forgetting the semicolon at the end of the closing brace", "Using integers inside it", "Capitalizing the struct name", "Including stdio.h"], answer: 0 },
+                            { q: "Structs form the conceptual basis for which advanced programming paradigm?", options: ["Functional Programming", "Machine Code", "Object-Oriented Programming (OOP)", "Web Design"], answer: 2 }
+                        ]
+                    }
+                ]
+            }
+        ];
+
+        const cosmeticsDB = [
+            { id: 'av1', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Felix&backgroundColor=b6e3f4', reqLevel: 1 },
+            { id: 'av2', url: 'https://api.dicebear.com/7.x/bottts/svg?seed=Max&backgroundColor=c0aede', reqLevel: 1 },
+            { id: 'av3', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=John&backgroundColor=ffdfbf', reqLevel: 2 },
+            { id: 'av4', url: 'https://api.dicebear.com/7.x/pixel-art/svg?seed=Jane&backgroundColor=b6e3f4', reqLevel: 2 },
+            { id: 'av5', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Destiny&backgroundColor=c0aede', reqLevel: 3 },
+            { id: 'av6', url: 'https://api.dicebear.com/7.x/adventurer/svg?seed=Oliver&backgroundColor=ffdfbf', reqLevel: 3 },
+            { id: 'av7', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Lily&backgroundColor=b6e3f4', reqLevel: 4 },
+            { id: 'av8', url: 'https://api.dicebear.com/7.x/fun-emoji/svg?seed=Leo&backgroundColor=ffd5dc', reqLevel: 5 },
+        ];
+
+        const badgeDB = {
+            'b_1': { id: 'bdg_1', name: 'Hello World', icon: 'fa-earth-americas', color: 'text-blue-500' },
+            'b_2': { id: 'bdg_2', name: 'File Organizer', icon: 'fa-folder-open', color: 'text-yellow-500' },
+            'c_1': { id: 'bdg_3', name: 'C Initiate', icon: 'fa-c', color: 'text-indigo-500' },
+            'c_2': { id: 'bdg_4', name: 'Data Wrangler', icon: 'fa-database', color: 'text-green-500' },
+            'c_structs': { id: 'bdg_5', name: 'Architect', icon: 'fa-building', color: 'text-purple-500' }
+        };
+
+    
+        let state = {
+            username: 'Guest Learner',
+            pfp: cosmeticsDB[0].url,
+            theme: 'light',
+            completedModules: [],
+            scores: {},
+            badges: [],
+            level: 1,
+            currentModule: null,
+            currentQuizIdx: 0,
+            quizScore: 0,
+            selectedOptionIndex: null
+        };
+        let advanceTimeout = null;
+
+        const STORAGE_KEY = 'codecanvas_save_v1';
+
+        function loadState() {
+            const saved = localStorage.getItem(STORAGE_KEY);
+            if (saved) {
+                try {
+                    const parsed = JSON.parse(saved);
+                    state = { ...state, ...parsed }; 
+                } catch(e) { console.error("Error loading save", e); }
+            }
+            applyTheme(state.theme);
+            document.getElementById('theme-selector').value = state.theme;
+            updateUIFromState();
+        }
+
+        function saveState() {
+            localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                username: state.username,
+                pfp: state.pfp,
+                theme: state.theme,
+                completedModules: state.completedModules,
+                scores: state.scores,
+                badges: state.badges,
+                level: state.level
+            }));
+            updateUIFromState();
+        }
+
+        function applyTheme(themeName) {
+            document.body.setAttribute('data-theme', themeName);
+            state.theme = themeName;
+        }
+
+        document.getElementById('theme-selector').addEventListener('change', (e) => {
+            applyTheme(e.target.value);
+            saveState();
+        });
+
+        function toggleSidebar() { document.getElementById('sidebar').classList.toggle('collapsed'); }
+
+      
+        function updateUIFromState() {
+            state.level = Math.max(1, Math.floor(state.completedModules.length / 1.5) + 1);
+
+            document.getElementById('sidebar-username').innerText = state.username;
+            document.getElementById('sidebar-level').innerText = `Lvl ${state.level} Coder`;
+            document.getElementById('sidebar-pfp').src = state.pfp;
+
+            document.getElementById('dash-name').innerText = state.username;
+            document.getElementById('dash-modules').innerText = state.completedModules.length;
+            document.getElementById('dash-badges-count').innerText = state.badges.length;
+            
+            let totalModules = 0;
+            syllabus.forEach(t => totalModules += t.modules.length);
+            const progPercent = Math.round((state.completedModules.length / totalModules) * 100);
+            document.getElementById('dash-progress').innerText = `${progPercent}%`;
+            
+            const fillTop = 100 - progPercent;
+            document.getElementById('dash-progress-fill').style.top = `${fillTop}%`;
+            document.getElementById('dash-progress-fill-2').style.top = `${fillTop}%`;
+
+            document.getElementById('profile-name-display').innerText = state.username;
+            document.getElementById('profile-level-display').innerText = `Level ${state.level}`;
+            document.getElementById('profile-large-pfp').src = state.pfp;
+            document.getElementById('stat-modules').innerText = state.completedModules.length;
+            document.getElementById('stat-badges').innerText = state.badges.length;
+
+            renderRoadmap();
+            renderBadges();
+            renderUpNext();
+        }
+
+        function isModuleUnlocked(moduleId) {
+            let mod = null;
+            syllabus.forEach(t => t.modules.forEach(m => { if(m.id === moduleId) mod = m; }));
+            if (!mod) return false;
+            if (!mod.requires) return true;
+            return state.completedModules.includes(mod.requires);
+        }
+
+        function getModule(moduleId) {
+            for (let t of syllabus) {
+                for (let m of t.modules) {
+                    if (m.id === moduleId) return m;
+                }
+            }
+            return null;
+        }
+
+        function renderRoadmap() {
+            const container = document.getElementById('roadmap-container');
+            container.innerHTML = '';
+
+            syllabus.forEach(track => {
+                const trackDiv = document.createElement('div');
+                trackDiv.className = 'mb-8';
+                trackDiv.innerHTML = `<h3 class="text-xl font-bold mb-4 flex items-center gap-2"><i class="fa-solid ${track.icon} text-secondary"></i> ${track.title}</h3>`;
+                
+                track.modules.forEach((mod) => {
+                    const isUnlocked = isModuleUnlocked(mod.id);
+                    const isCompleted = state.completedModules.includes(mod.id);
+                    const score = state.scores[mod.id] !== undefined ? `${state.scores[mod.id]}%` : '';
+                    
+                    let statusClass = isCompleted ? 'completed' : (isUnlocked ? 'unlocked' : '');
+
+                    const node = document.createElement('div');
+                    node.className = `roadmap-node ${statusClass} module-card bg-panel p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4 transition-all ${isUnlocked ? 'hover:-translate-y-1' : 'opacity-60 grayscale'}`;
+                    
+                    let btnHTML = '';
+                    if (isCompleted) {
+                        btnHTML = `<button onclick="openModule('${mod.id}')" class="btn btn-outline text-sm">Review <i class="fa-solid fa-check"></i> ${score}</button>`;
+                    } else if (isUnlocked) {
+                        btnHTML = `<button onclick="openModule('${mod.id}')" class="btn text-sm">Start Module</button>`;
+                    } else {
+                        btnHTML = `<button class="btn btn-disabled text-sm"><i class="fa-solid fa-lock"></i> Locked</button>`;
+                    }
+
+                    node.innerHTML = `
+                        <div class="module-banner" style="background-image: url('${mod.img}')"></div>
+                        <div class="max-w-[60%]">
+                            <div class="flex items-center gap-2">
+                                <h4 class="font-bold text-lg">${mod.title}</h4>
+                                ${mod.isOptional ? '<span class="text-[10px] bg-theme px-2 py-1 rounded border border-theme text-secondary uppercase font-bold">Optional</span>' : ''}
+                            </div>
+                            <p class="text-sm text-secondary">${mod.description}</p>
+                        </div>
+                        <div class="shrink-0 z-10">
+                            ${btnHTML}
+                        </div>
+                    `;
+                    trackDiv.appendChild(node);
+                });
+                container.appendChild(trackDiv);
+            });
+        }
+
+        function renderUpNext() {
+            const container = document.getElementById('dash-up-next');
+            container.innerHTML = '';
+            
+            let nextMod = null;
+            let trackName = '';
+            for (let track of syllabus) {
+                for (let mod of track.modules) {
+                    if (isModuleUnlocked(mod.id) && !state.completedModules.includes(mod.id)) {
+                        nextMod = mod;
+                        trackName = track.title;
+                        break;
+                    }
+                }
+                if(nextMod) break;
+            }
+
+            if (nextMod) {
+                container.innerHTML = `
+                    <div>
+                        <span class="text-xs text-secondary font-bold uppercase block mb-1">${trackName}</span>
+                        <h4 class="font-bold text-lg">${nextMod.title}</h4>
+                    </div>
+                    <button onclick="switchView('roadmap-view'); setTimeout(()=>openModule('${nextMod.id}'), 100)" class="btn shrink-0">Continue Learning <i class="fa-solid fa-arrow-right"></i></button>
+                `;
+            } else {
+                container.innerHTML = `<p class="text-secondary italic">You've completed all modules! Great job.</p>`;
+            }
+        }
+
+        function renderBadges() {
+            const dashContainer = document.getElementById('dash-badges');
+            const allContainer = document.getElementById('all-badges-grid');
+            dashContainer.innerHTML = '';
+            allContainer.innerHTML = '';
+
+            if(state.badges.length === 0) {
+                dashContainer.innerHTML = '<p class="text-secondary text-sm italic">Complete modules to earn badges!</p>';
+            }
+
+            Object.values(badgeDB).forEach(badgeDef => {
+                const isEarned = state.badges.includes(badgeDef.id);
+                
+                const badgeHTML = `
+                    <div class="flex flex-col items-center justify-center p-3 bg-panel w-24 h-24 text-center ${isEarned ? '' : 'opacity-30 grayscale'} relative group">
+                        <i class="fa-solid ${badgeDef.icon} text-3xl mb-2 ${isEarned ? badgeDef.color : 'text-gray-400'}"></i>
+                        <span class="text-[10px] font-bold leading-tight">${badgeDef.name}</span>
+                        ${!isEarned ? '<i class="fa-solid fa-lock absolute top-1 right-1 text-xs text-secondary"></i>' : ''}
+                    </div>
+                `;
+                allContainer.innerHTML += badgeHTML;
+                
+                if(isEarned && dashContainer.children.length < 4) {
+                     dashContainer.innerHTML += badgeHTML;
+                }
+            });
+        }
+
+        function switchView(viewId) {
+            document.querySelectorAll('.view-section').forEach(el => el.classList.remove('active'));
+            document.getElementById(viewId).classList.add('active');
+        }
+
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.currentTarget.getAttribute('data-target');
+                switchView(target);
+            });
+        });
+
+   
+        function openModule(moduleId) {
+            const mod = getModule(moduleId);
+            if (!mod) return;
+            state.currentModule = mod;
+            
+            let trackName = '';
+            syllabus.forEach(t => t.modules.forEach(m => { if(m.id === moduleId) trackName = t.title; }));
+
+            document.getElementById('lesson-tag').innerText = `${trackName} > ${mod.title}`;
+            document.getElementById('lesson-title').innerText = mod.title;
+            document.getElementById('lesson-content').innerHTML = mod.content;
+
+            switchView('learning-view');
+        }
+
+        document.getElementById('btn-start-quiz').addEventListener('click', () => {
+            if(!state.currentModule) return;
+            startQuiz();
+        });
+
+        function startQuiz() {
+            state.currentQuizIdx = 0;
+            state.quizScore = 0;
+            document.getElementById('quiz-results').classList.add('hidden');
+            document.getElementById('quiz-container').classList.remove('hidden');
+            document.getElementById('quiz-inner-content').style.opacity = '1';
+            renderQuizQuestion();
+            switchView('quiz-view');
+        }
+
+        function renderQuizQuestion() {
+            const mod = state.currentModule;
+            const qData = mod.quiz[state.currentQuizIdx];
+            state.selectedOptionIndex = null;
+            if(advanceTimeout) clearTimeout(advanceTimeout);
+            
+            document.getElementById('quiz-progress').innerText = `Q ${state.currentQuizIdx + 1}/${mod.quiz.length}`;
+    
+            const progPercent = (state.currentQuizIdx / mod.quiz.length) * 100;
+            document.getElementById('quiz-progress-bar').style.width = `${progPercent}%`;
+
+            document.getElementById('question-text').innerText = qData.q;
+            
+            const optsContainer = document.getElementById('options-container');
+            optsContainer.innerHTML = '';
+            
+            qData.options.forEach((opt, idx) => {
+                const btn = document.createElement('button');
+                btn.className = 'quiz-option-btn w-full text-left p-4 bg-panel border-2 border-theme rounded-lg hover:border-accent hover:-translate-y-1 transition-all duration-200 font-medium active:scale-95';
+                btn.innerText = opt;
+                btn.onclick = () => selectOption(idx);
+                optsContainer.appendChild(btn);
+            });
+
+            document.getElementById('btn-submit-answer').classList.add('hidden');
+            document.getElementById('btn-submit-answer').onclick = submitAnswer;
+        }
+
+        function selectOption(selectedIndex) {
+            playTone(800, 'sine', 0.05, 0);
+            state.selectedOptionIndex = selectedIndex;
+            const btns = document.getElementById('options-container').children;
+            
+            for(let i=0; i<btns.length; i++) {
+                btns[i].classList.remove('border-accent', 'bg-accent/10', 'scale-[1.02]');
+                btns[i].classList.add('border-theme');
+                if (i === selectedIndex) {
+                    btns[i].classList.remove('border-theme');
+                    btns[i].classList.add('border-accent', 'bg-accent/10', 'scale-[1.02]');
+                }
+            }
+            document.getElementById('btn-submit-answer').classList.remove('hidden');
+        }
+
+        function submitAnswer() {
+            if (state.selectedOptionIndex === null) return;
+            
+            const mod = state.currentModule;
+            const qData = mod.quiz[state.currentQuizIdx];
+            const isCorrect = state.selectedOptionIndex === qData.answer;
+            const btns = document.getElementById('options-container').children;
+            
+  
+            for(let i=0; i<btns.length; i++) {
+                btns[i].onclick = null;
+                btns[i].classList.remove('hover:-translate-y-1', 'active:scale-95', 'hover:border-accent', 'cursor-pointer');
+                btns[i].classList.add('cursor-default');
+                
+                if(i === qData.answer) {
+                    btns[i].classList.add('bg-green-100', 'dark:bg-green-900', 'border-green-500', 'text-green-800', 'dark:text-green-100');
+                } else if (i === state.selectedOptionIndex && !isCorrect) {
+                    btns[i].classList.add('bg-red-100', 'dark:bg-red-900', 'border-red-500', 'text-red-800', 'dark:text-red-100');
+                }
+            }
+
+            if (isCorrect) {
+                state.quizScore++;
+                playCorrectSound();
+            } else {
+                playWrongSound();
+            }
+
+            document.getElementById('btn-submit-answer').classList.add('hidden');
+            
+         
+            const delay = isCorrect ? 300 : 1500;
+            const innerContent = document.getElementById('quiz-inner-content');
+            
+            advanceTimeout = setTimeout(() => {
+                innerContent.style.opacity = '0'; 
+                
+                setTimeout(() => {
+                    state.currentQuizIdx++;
+                    if (state.currentQuizIdx < mod.quiz.length) {
+                        renderQuizQuestion();
+                        innerContent.style.opacity = '1'; 
+                    } else {
+                        finishQuiz();
+                        innerContent.style.opacity = '1';
+                    }
+                }, 300); 
+            }, delay);
+        }
+
+        function finishQuiz() {
+            const mod = state.currentModule;
+            const percentage = Math.round((state.quizScore / mod.quiz.length) * 100);
+            const passed = percentage >= mod.requiredScore;
+
+      
+            document.getElementById('quiz-progress-bar').style.width = `100%`;
+
+            document.getElementById('quiz-container').classList.add('hidden');
+            const resDiv = document.getElementById('quiz-results');
+            resDiv.classList.remove('hidden');
+
+          
+            const scoreEl = document.getElementById('result-score');
+            const statusEl = document.getElementById('result-status');
+            scoreEl.innerText = `${percentage}%`;
+            
+            const retryBtn = document.getElementById('btn-retry-quiz');
+            const rewardShowcase = document.getElementById('reward-showcase');
+            const rewardItems = document.getElementById('reward-items');
+            
+            rewardShowcase.classList.add('hidden');
+            rewardItems.innerHTML = '';
+
+            if (passed) {
+                playPassSound();
+                statusEl.innerText = 'PASSED';
+                statusEl.className = 'text-2xl font-bold tracking-widest uppercase mb-10 text-success';
+                scoreEl.classList.remove('text-danger');
+                retryBtn.classList.add('hidden');
+
+                if (!state.completedModules.includes(mod.id)) {
+                    state.completedModules.push(mod.id);
+                    
+                    if (badgeDB[mod.id]) {
+                        const bDef = badgeDB[mod.id];
+                        if(!state.badges.includes(bDef.id)) {
+                            state.badges.push(bDef.id);
+                            rewardItems.innerHTML += `<div class="flex flex-col items-center"><i class="fa-solid ${bDef.icon} ${bDef.color}"></i><span class="text-xs mt-1 font-bold">New Badge!</span></div>`;
+                            rewardShowcase.classList.remove('hidden');
+                        }
+                    }
+                }
+                
+                if (!state.scores[mod.id] || percentage > state.scores[mod.id]) {
+                    state.scores[mod.id] = percentage;
+                }
+                saveState(); 
+            } else {
+                playFailSound();
+                statusEl.innerText = `FAILED (Req: ${mod.requiredScore}%)`;
+                statusEl.className = 'text-2xl font-bold tracking-widest uppercase mb-10 text-danger';
+                scoreEl.classList.add('text-danger');
+                retryBtn.classList.remove('hidden');
+                retryBtn.onclick = startQuiz;
+            }
+        }
+
+        function editUsername() {
+            const newName = prompt("Enter new username:", state.username);
+            if (newName && newName.trim().length > 0) {
+                state.username = newName.trim().substring(0, 15);
+                saveState();
+            }
+        }
+
+        function openCosmeticsModal() {
+            const grid = document.getElementById('avatar-grid');
+            grid.innerHTML = '';
+            
+            cosmeticsDB.forEach(cos => {
+                const isUnlocked = state.level >= cos.reqLevel;
+                const isSelected = state.pfp === cos.url;
+                const btn = document.createElement('div');
+                btn.className = `relative cursor-pointer rounded-lg p-2 border-2 ${isSelected ? 'border-accent bg-accent/10' : 'border-transparent hover:border-theme'} ${!isUnlocked ? 'opacity-40 grayscale cursor-not-allowed' : ''}`;
+                
+                btn.innerHTML = `
+                    <img src="${cos.url}" class="w-full h-auto rounded-md">
+                    ${!isUnlocked ? `<div class="absolute inset-0 flex items-center justify-center"><i class="fa-solid fa-lock text-xl text-black drop-shadow-md"></i></div><div class="text-center text-[10px] mt-1 font-bold">Lvl ${cos.reqLevel}</div>` : ''}
+                    ${isSelected ? `<div class="absolute -top-2 -right-2 bg-accent text-white rounded-full w-6 h-6 flex items-center justify-center text-xs"><i class="fa-solid fa-check"></i></div>` : ''}
+                `;
+
+                if (isUnlocked) {
+                    btn.onclick = () => {
+                        state.pfp = cos.url;
+                        saveState();
+                        openCosmeticsModal();
+                    };
+                }
+                grid.appendChild(btn);
+            });
+            document.getElementById('cosmetics-modal').classList.remove('hidden');
+        }
+
+        function closeCosmeticsModal() { document.getElementById('cosmetics-modal').classList.add('hidden'); }
+
+        function downloadSaveData() {
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state));
+            const downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href",     dataStr);
+            downloadAnchorNode.setAttribute("download", "codecanvas_save_" + new Date().getTime() + ".json");
+            document.body.appendChild(downloadAnchorNode); 
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function uploadSaveData(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const parsed = JSON.parse(e.target.result);
+                    if (parsed.username !== undefined && parsed.completedModules !== undefined) {
+                        state = { ...state, ...parsed };
+                        saveState();
+                        alert("Save data restored successfully!");
+                        switchView('dashboard-view');
+                    } else { alert("Invalid save file format."); }
+                } catch (err) { alert("Error reading file."); }
+            };
+            reader.readAsText(file);
+            event.target.value = '';
+        }
+
+        function resetProgress() {
+            if(confirm("Are you sure? This will delete all your local progress. Make sure to download a backup first!")) {
+                localStorage.removeItem(STORAGE_KEY);
+                location.reload();
+            }
+        }
+
+        window.onload = () => {
+            loadState();
+            if (window.innerWidth <= 768) {
+                document.getElementById('sidebar').classList.add('collapsed');
+            }
+        };
+    </script>
+</body>
+</html>
